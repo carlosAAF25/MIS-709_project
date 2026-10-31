@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "postgres-service" # Nombre del servicio de K8s que crearemos para la DB
+  DB_USER: "admin"
+  DB_NAME: "tareas_db"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  # "password_secreta" codificada en Base64
+  POSTGRES_PASSWORD: cGFzc3dvcmRfc2VjcmV0YQ==

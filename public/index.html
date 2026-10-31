@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tareas</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-top: 0; }
+        form { display: flex; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; }
+        button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { background: #f9fafb; margin-bottom: 10px; padding: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #2563eb; }
+        li.completada { border-left-color: #10b981; opacity: 0.7; }
+        li.completada span { text-decoration: line-through; color: #6b7280; }
+        .btn-check { background: #10b981; border-radius: 4px; padding: 5px 10px; font-size: 0.9em; }
+        .btn-check:hover { background: #059669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Mis Tareas</h2>
+        <form id="form-tarea">
+            <input type="text" id="input-tarea" placeholder="Escribe una nueva tarea..." required>
+            <button type="submit">Agregar</button>
+        </form>
+        <ul id="lista-tareas"></ul>
+    </div>
+
+    <script>
+        const API_URL = '/tareas';
+
+        // Cargar tareas al iniciar
+        async function cargarTareas() {
+            const res = await fetch(API_URL);
+            const tareas = await res.json();
+            const lista = document.getElementById('lista-tareas');
+            lista.innerHTML = '';
+            
+            tareas.forEach(tarea => {
+                const li = document.createElement('li');
+                if (tarea.completada) li.className = 'completada';
+                
+                li.innerHTML = `
+                    <span>${tarea.descripcion}</span>
+                    ${!tarea.completada ? `<button class="btn-check" onclick="completarTarea(${tarea.id})">✔ Completar</button>` : '<span>Finalizada</span>'}
+                `;
+                lista.appendChild(li);
+            });
+        }
+
+        // Crear nueva tarea
+        document.getElementById('form-tarea').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input-tarea');
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ descripcion: input.value })
+            });
+            input.value = '';
+            cargarTareas();
+        });
+
+        // Marcar como completada
+        async function completarTarea(id) {
+            await fetch(`${API_URL}/${id}`, { method: 'PUT' });
+            cargarTareas();
+        }
+
+        cargarTareas();
+    </script>
+</body>
+</html>
